@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faire l’appel</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f4f8fc;
+      color: #18324a;
+    }
+
+    .header {
+      background: #1769aa;
+      color: white;
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .header-inner {
+      width: min(94%, 900px);
+      margin: auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .back {
+      color: white;
+      text-decoration: none;
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .header p {
+      margin: 5px 0 0;
+      font-size: 14px;
+      opacity: 0.92;
+    }
+
+    .container {
+      width: min(94%, 900px);
+      margin: 25px auto 40px;
+    }
+
+    .session-card,
+    .students-card,
+    .summary {
+      background: white;
+      border: 1px solid #dbe7f1;
+      border-radius: 18px;
+      box-shadow: 0 5px 16px rgba(28,77,117,0.08);
+    }
+
+    .session-card {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .session-card h2 {
+      margin: 0 0 18px;
+      font-size: 20px;
+    }
+
+    .session-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.3fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #49677f;
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #cbdbe8;
+      border-radius: 10px;
+      font-size: 15px;
+      background: white;
+      color: #18324a;
+    }
+
+    .students-card {
+      overflow: hidden;
+    }
+
+    .students-title {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e3edf5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .students-title h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .students-title span {
+      color: #6c8092;
+      font-size: 14px;
+    }
+
+    .student {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid #edf2f6;
+    }
+
+    .student:last-child {
+      border-bottom: 0;
+    }
+
+    .student-name {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .student-state {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #648096;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .status-btn {
+      border: 1px solid #cbdbe8;
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: #f8fbfd;
+      color: #36576f;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .status-btn.present.active {
+      background: #e9f7ef;
+      border-color: #9dd2ae;
+      color: #257044;
+    }
+
+    .status-btn.absent.active {
+      background: #fff0f0;
+      border-color: #e5aaaa;
+      color: #a33333;
+    }
+
+    .status-btn.late.active {
+      background: #fff7e6;
+      border-color: #e3c57a;
+      color: #8b6500;
+    }
+
+    .arrival-time {
+      display: none;
+      width: 105px;
+    }
+
+    .student.is-late .arrival-time {
+      display: block;
+    }
+
+    .summary {
+      margin-top: 20px;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .summary-text {
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .summary-text strong {
+      color: #1769aa;
+    }
+
+    .validate {
+      border: 0;
+      border-radius: 12px;
+      padding: 13px 22px;
+      background: #1769aa;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .validate:hover {
+      background: #12588f;
+    }
+
+    @media (max-width: 700px) {
+      .header-inner {
+        width: 100%;
+      }
+
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .container {
+        margin-top: 18px;
+      }
+
+      .session-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .student {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+      }
+
+      .status-btn {
+        flex: 1;
+        min-width: 85px;
+      }
+
+      .arrival-time {
+        flex: 1;
+      }
+
+      .summary {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .validate {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .session-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .students-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <a class="back" href="index.html">←</a>
+
+      <div>
+        <h1>📋 Faire l’appel</h1>
+        <p>Gestion des absences et retards</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="session-card">
+      <h2>Séance</h2>
+
+      <div class="session-grid">
+
+        <div>
+          <label for="classSelect">Classe</label>
+          <select id="classSelect">
+            <option>IGer</option>
+            <option>IGPer</option>
+            <option>IGsal</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="dateInput">Date</label>
+          <input type="date" id="dateInput">
+        </div>
+
+        <div>
+          <label for="startTime">Début</label>
+          <input type="time" id="startTime" value="08:00">
+        </div>
+
+        <div>
+          <label for="endTime">Fin</label>
+          <input type="time" id="endTime" value="10:00">
+        </div>
+
+      </div>
+    </section>
+
+    <section class="students-card">
+
+      <div class="students-title">
+        <h2>Élèves</h2>
+        <span>Tous présents par défaut</span>
+      </div>
+
+      <div id="studentsList"></div>
+
+    </section>
+
+    <section class="summary">
+
+      <div class="summary-text">
+        <strong id="presentCount">0 présent(s)</strong> •
+        <span id="absentCount">0 absent(s)</span> •
+        <span id="lateCount">0 retard(s)</span>
+      </div>
+
+      <button class="validate" onclick="validateAttendance()">
+        Valider l’appel
+      </button>
+
+    </section>
+
+  </main>
+
+  <script>
+    const students = [
+      "Aicha MARROUCHE",
+      "Fatima KHERBCHRAIT",
+      "Hajar EL KARAFI",
+      "Hamza AMALOUK",
+      "Hiba BAKZIZ",
+      "Yassine LABNIHI"
+    ];
+
+    const attendance = {};
+
+    function currentTime() {
+      const now = new Date();
+      return String(now.getHours()).padStart(2, "0") + ":" +
+             String(now.getMinutes()).padStart(2, "0");
+    }
+
+    function renderStudents() {
+      const list = document.getElementById("studentsList");
+      list.innerHTML = "";
+
+      students
+        .slice()
+        .sort((a, b) => a.localeCompare(b, "fr"))
+        .forEach((name, index) => {
+
+          if (!attendance[name]) {
+            attendance[name] = {
+              status: "present",
+              arrival: ""
+            };
+          }
+
+          const data = attendance[name];
+
+          const row = document.createElement("div");
+          row.className = "student" +
+            (data.status === "late" ? " is-late" : "");
+
+          row.innerHTML = `
+            <div>
+              <div class="student-name">${name}</div>
+              <div class="student-state">
+                ${statusLabel(data.status, data.arrival)}
+              </div>
+            </div>
+
+            <div class="actions">
+
+              <button
+                class="status-btn present ${data.status === "present" ? "active" : ""}"
+                onclick="setStatus('${name}', 'present')">
+                Présent
+              </button>
+
+              <button
+                class="status-btn absent ${data.status === "absent" ? "active" : ""}"
+                onclick="setStatus('${name}', 'absent')">
+                Absent
+              </button>
+
+              <button
+                class="status-btn late ${data.status === "late" ? "active" : ""}"
+                onclick="setStatus('${name}', 'late')">
+                Retard
+              </button>
+
+              <input
+                class="arrival-time"
+                type="time"
+                value="${data.arrival}"
+                onchange="changeArrival('${name}', this.value)">
+            </div>
+          `;
+
+          list.appendChild(row);
+        });
+
+      updateSummary();
+    }
+
+    function statusLabel(status, arrival) {
+      if (status === "absent") {
+        return "Absent non justifié";
+      }
+
+      if (status === "late") {
+        return arrival
+          ? "Retard — arrivée à " + arrival
+          : "Retard";
+      }
+
+      return "Présent";
+    }
+
+    function setStatus(name, status) {
+      const current = attendance[name];
+
+      if (current.status === status && status !== "present") {
+        current.status = "present";
+        current.arrival = "";
+      } else {
+        current.status = status;
+
+        if (status === "late") {
+          current.arrival = currentTime();
+        } else {
+          current.arrival = "";
+        }
+      }
+
+      renderStudents();
+    }
+
+    function changeArrival(name, value) {
+      attendance[name].arrival = value;
+      renderStudents();
+    }
+
+    function updateSummary() {
+      const values = Object.values(attendance);
+
+      const present = values.filter(x => x.status === "present").length;
+      const absent = values.filter(x => x.status === "absent").length;
+      const late = values.filter(x => x.status === "late").length;
+
+      document.getElementById("presentCount").textContent =
+        present + " présent(s)";
+
+      document.getElementById("absentCount").textContent =
+        absent + " absent(s)";
+
+      document.getElementById("lateCount").textContent =
+        late + " retard(s)";
+    }
+
+    function validateAttendance() {
+      const present =
+        Object.values(attendance).filter(x => x.status === "present").length;
+
+      const absent =
+        Object.values(attendance).filter(x => x.status === "absent").length;
+
+      const late =
+        Object.values(attendance).filter(x => x.status === "late").length;
+
+      alert(
+        "Appel prêt à être validé\\n\\n" +
+        present + " présent(s)\\n" +
+        absent + " absent(s)\\n" +
+        late + " retard(s)\\n\\n" +
+        "Aucune donnée n'est encore enregistrée dans une base."
+      );
+    }
+
+    document.getElementById("dateInput").value =
+      new Date().toISOString().split("T")[0];
+
+    renderStudents();
+  </script>
+
+</body>
+</html>
