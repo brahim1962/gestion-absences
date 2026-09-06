@@ -306,10 +306,8 @@
 
         <div>
           <label for="classSelect">Classe</label>
-          <select id="classSelect">
-            <option>IGer</option>
-            <option>IGPer</option>
-            <option>IGsal</option>
+          <select id="classSelect" onchange="changeClass()">
+          <option value="">Chargement des classes...</option>  
           </select>
         </div>
 
@@ -363,6 +361,7 @@
     
    const SUPABASE_URL = "https://gtbbrvtpesyumnhyfsrh.supabase.co"; 
    let students = []; 
+    let allStudents = [];
    async function loadStudents() {
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/students?select=first_name,last_name,class_name&active=eq.true&order=class_name.asc&order=Students_code.asc`,
@@ -380,11 +379,23 @@
 
   const data = await response.json();
 
-  students = data.map(student =>
-    `${student.first_name} ${student.last_name}`.trim()
-  );
+  allStudents = data;
 
-  renderStudents();
+const classes = [...new Set(
+  allStudents.map(student => student.class_name)
+)].filter(Boolean);
+
+const classSelect = document.getElementById("classSelect");
+
+classSelect.innerHTML = classes
+  .map(className => `<option value="${className}">${className}</option>`)
+  .join("");
+
+students = allStudents
+  .filter(student => student.class_name === classSelect.value)
+  .map(student => `${student.first_name} ${student.last_name}`.trim());
+
+renderStudents();
 }
     const attendance = {};
 
@@ -393,7 +404,15 @@
       return String(now.getHours()).padStart(2, "0") + ":" +
              String(now.getMinutes()).padStart(2, "0");
     }
+function changeClass() {
+  const selectedClass = document.getElementById("classSelect").value;
 
+  students = allStudents
+    .filter(student => student.class_name === selectedClass)
+    .map(student => `${student.first_name} ${student.last_name}`.trim());
+
+  renderStudents();
+}
     function renderStudents() {
       const list = document.getElementById("studentsList");
       list.innerHTML = "";
