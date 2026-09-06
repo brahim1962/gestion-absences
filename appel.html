@@ -516,7 +516,9 @@ function changeClass() {
     }
 
     function updateSummary() {
-      const values = Object.values(attendance);
+      const values = students
+  .map(name => attendance[name])
+  .filter(Boolean);
 
       const present = values.filter(x => x.status === "present").length;
       const absent = values.filter(x => x.status === "absent").length;
