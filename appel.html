@@ -348,9 +348,9 @@
         <span id="lateCount">0 retard(s)</span>
       </div>
 
-      <button class="validate" onclick="validateAttendance()">
-        Valider l’appel
-      </button>
+      <button id="validateButton" class="validate" onclick="validateAttendance()">
+  Valider l’appel
+</button>
 
     </section>
 
@@ -535,6 +535,15 @@ function changeClass() {
     }
 
    async function validateAttendance() {
+const validateButton = document.getElementById("validateButton");
+
+if (validateButton.disabled) {
+  return;
+}
+
+validateButton.disabled = true;
+validateButton.textContent = "Enregistrement...";
+     
   const selectedClass = document.getElementById("classSelect").value;
   const attendanceDate = document.getElementById("dateInput").value;
   const startTime = document.getElementById("startTime").value;
@@ -604,6 +613,8 @@ function changeClass() {
 
   } catch (error) {
     console.error(error);
+    validateButton.disabled = false;
+validateButton.textContent = "Valider l’appel";
 
     alert(
       "❌ L'appel n'a pas pu être enregistré.\n\n" +
