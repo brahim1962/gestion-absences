@@ -359,15 +359,33 @@
   </main>
 
   <script>
-    const students = [
-      "Aicha MARROUCHE",
-      "Fatima KHERBCHRAIT",
-      "Hajar EL KARAFI",
-      "Hamza AMALOUK",
-      "Hiba BAKZIZ",
-      "Yassine LABNIHI"
-    ];
+  const SUPABASE_KEY = "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
+    
+   const SUPABASE_URL = "https://gtbbrvtpesyumnhyfsrh.supabase.co"; 
+   let students = []; 
+   async function loadStudents() {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/students?select=first_name,last_name,class_name&active=eq.true&order=class_name.asc&order=Students_code.asc`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
 
+  if (!response.ok) {
+    throw new Error("Impossible de charger les élèves.");
+  }
+
+  const data = await response.json();
+
+  students = data.map(student =>
+    `${student.first_name} ${student.last_name}`.trim()
+  );
+
+  renderStudents();
+}
     const attendance = {};
 
     function currentTime() {
@@ -517,7 +535,7 @@ late + " retard(s)\n\n" +
     document.getElementById("dateInput").value =
       new Date().toISOString().split("T")[0];
 
-    renderStudents();
+   loadStudents(); 
   </script>
 
 </body>
