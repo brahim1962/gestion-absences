@@ -213,6 +213,7 @@
         if (!sessions[key]) {
           sessions[key] = {
             date: row.attendance_date,
+            createdAt: row.created_at,
             className: row.class_name,
             startTime: row.start_time,
             endTime: row.end_time,
@@ -252,6 +253,13 @@
           session.endTime
             ? session.endTime.slice(0,5)
             : "--:--";
+        const registeredTime =
+  session.createdAt
+    ? new Date(session.createdAt).toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    : "--:--";
 
         const card = document.createElement("div");
 
@@ -268,6 +276,9 @@
               <div class="session-time">
                 ${start} → ${end}
               </div>
+              <div class="session-time">
+  Enregistré à ${registeredTime}
+</div>
             </div>
 
             <div class="session-class">
