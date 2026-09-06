@@ -187,7 +187,7 @@ if (!profAccessToken) {
         {
           headers: {
             apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`
+            Authorization: `Bearer ${profAccessToken}`
           }
         }
       );
@@ -209,7 +209,7 @@ const studentIds = [...new Set(rows.map(row => row.student_id).filter(Boolean))]
   {
     headers: {
       apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
+      Authorization: `Bearer ${profAccessToken}`
     }
   }
 );
