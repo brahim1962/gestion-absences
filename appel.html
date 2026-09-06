@@ -418,8 +418,17 @@ if (!profAccessToken && !profRefreshToken) {
   );
 
   if (!response.ok) {
-    throw new Error("Impossible de charger les élèves.");
+  const refreshed = await refreshProfessorSession();
+
+  if (refreshed) {
+    return loadStudents();
   }
+
+  sessionStorage.removeItem("prof_access_token");
+  sessionStorage.removeItem("prof_refresh_token");
+  window.location.href = "connexion.html";
+  return;
+}
 
   const data = await response.json();
 
