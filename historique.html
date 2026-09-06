@@ -178,7 +178,7 @@
     try {
 
       const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/attendance?select=created_at,attendance_date,class_name,status,arrival_time,start_time,end_time&order=attendance_date.desc,created_at.desc`,
+        `${SUPABASE_URL}/rest/v1/attendance?select=student_id,created_at,attendance_date,class_name,status,arrival_time,start_time,end_time&order=attendance_date.desc,created_at.desc`,
         {
           headers: {
             apikey: SUPABASE_KEY,
@@ -198,7 +198,28 @@
           '<div class="empty">Aucun appel enregistré pour le moment.</div>';
         return;
       }
+const studentIds = [...new Set(rows.map(row => row.student_id).filter(Boolean))];
+     const studentsResponse = await fetch(
+  `${SUPABASE_URL}/rest/v1/students?select=id,first_name,last_name&id=in.(${studentIds.join(",")})`,
+  {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  }
+);
 
+if (!studentsResponse.ok) {
+  throw new Error(await studentsResponse.text());
+}
+
+const students = await studentsResponse.json(); 
+    const studentsById = {};
+
+students.forEach(student => {
+  studentsById[student.id] =
+    `${student.first_name} ${student.last_name}`;
+});  
       const sessions = {};
 
       rows.forEach(row => {
@@ -219,7 +240,9 @@
             endTime: row.end_time,
             present: 0,
             absent: 0,
-            late: 0
+            late: 0,
+            absentNames: [],
+            lateNames: []
           };
         }
 
@@ -228,12 +251,18 @@
         }
 
         if (row.status === "absent") {
-          sessions[key].absent++;
-        }
+  sessions[key].absent++;
+  sessions[key].absentNames.push(
+    studentsById[row.student_id] || "Élève inconnu"
+  );
+}
 
-        if (row.status === "late") {
-          sessions[key].late++;
-        }
+if (row.status === "late") {
+  sessions[key].late++;
+  sessions[key].lateNames.push(
+    studentsById[row.student_id] || "Élève inconnu"
+  );
+}
       });
 
       history.innerHTML = "";
@@ -296,10 +325,16 @@
             <div class="stat absent">
               ${session.absent} absent(s)
             </div>
+           ${session.absentNames.length > 0
+           ? `<div>${session.absentNames.join(", ")}</div>`
+           : ""} 
 
             <div class="stat late">
               ${session.late} retard(s)
             </div>
+            ${session.lateNames.length > 0
+           ? `<div>${session.lateNames.join(", ")}</div>`
+           : ""}
 
           </div>
         `;
