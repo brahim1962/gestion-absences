@@ -357,8 +357,8 @@
   </main>
 
   <script>
-    const profAccessToken = sessionStorage.getItem("prof_access_token");
-
+   let profAccessToken = sessionStorage.getItem("prof_access_token");
+const profRefreshToken = sessionStorage.getItem("prof_refresh_token");
 if (!profAccessToken) {
   window.location.href = "connexion.html";
 }
