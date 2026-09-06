@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Historique des appels</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f8fc;
+      color: #0b2d4d;
+    }
+
+    header {
+      background: #2176b5;
+      color: white;
+      padding: 22px;
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .back {
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      margin-right: 14px;
+    }
+
+    header h1 {
+      display: inline;
+      font-size: 27px;
+    }
+
+    header p {
+      margin: 6px 0 0 39px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 26px auto;
+      padding: 0 16px;
+    }
+
+    .title {
+      margin-bottom: 20px;
+    }
+
+    .title h2 {
+      margin-bottom: 5px;
+    }
+
+    .session {
+      background: white;
+      border: 1px solid #d6e3ee;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.04);
+    }
+
+    .session-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .session-date {
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .session-class {
+      color: #2176b5;
+      font-weight: bold;
+    }
+
+    .session-time {
+      color: #58728b;
+      margin-top: 5px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      padding: 8px 12px;
+      border-radius: 9px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .present {
+      background: #e8f7ed;
+      color: #16733b;
+    }
+
+    .absent {
+      background: #fdeaea;
+      color: #b42323;
+    }
+
+    .late {
+      background: #fff4dd;
+      color: #9a6200;
+    }
+
+    .loading,
+    .empty,
+    .error {
+      background: white;
+      border: 1px solid #d6e3ee;
+      border-radius: 14px;
+      padding: 25px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 22px;
+      }
+
+      .session {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="back" href="index.html">←</a>
+    <h1>📚 Historique</h1>
+    <p>Consultation des séances enregistrées</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="title">
+    <h2>Historique des appels</h2>
+    <div>Présences, absences et retards enregistrés</div>
+  </div>
+
+  <div id="history">
+    <div class="loading">Chargement de l'historique...</div>
+  </div>
+
+</main>
+
+<script>
+  const SUPABASE_KEY =
+    "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
+
+  const SUPABASE_URL =
+    "https://gtbbrvtpesyumnhyfsrh.supabase.co";
+
+  async function loadHistory() {
+
+    const history = document.getElementById("history");
+
+    try {
+
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/attendance?select=attendance_date,class_name,status,arrival_time,start_time,end_time&order=attendance_date.desc,created_at.desc`,
+        {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const rows = await response.json();
+
+      if (rows.length === 0) {
+        history.innerHTML =
+          '<div class="empty">Aucun appel enregistré pour le moment.</div>';
+        return;
+      }
+
+      const sessions = {};
+
+      rows.forEach(row => {
+
+        const key =
+          row.attendance_date + "|" +
+          row.class_name + "|" +
+          row.start_time + "|" +
+          row.end_time;
+
+        if (!sessions[key]) {
+          sessions[key] = {
+            date: row.attendance_date,
+            className: row.class_name,
+            startTime: row.start_time,
+            endTime: row.end_time,
+            present: 0,
+            absent: 0,
+            late: 0
+          };
+        }
+
+        if (row.status === "present") {
+          sessions[key].present++;
+        }
+
+        if (row.status === "absent") {
+          sessions[key].absent++;
+        }
+
+        if (row.status === "late") {
+          sessions[key].late++;
+        }
+      });
+
+      history.innerHTML = "";
+
+      Object.values(sessions).forEach(session => {
+
+        const date = new Date(
+          session.date + "T00:00:00"
+        ).toLocaleDateString("fr-FR");
+
+        const start =
+          session.startTime
+            ? session.startTime.slice(0,5)
+            : "--:--";
+
+        const end =
+          session.endTime
+            ? session.endTime.slice(0,5)
+            : "--:--";
+
+        const card = document.createElement("div");
+
+        card.className = "session";
+
+        card.innerHTML = `
+          <div class="session-top">
+
+            <div>
+              <div class="session-date">
+                ${date}
+              </div>
+
+              <div class="session-time">
+                ${start} → ${end}
+              </div>
+            </div>
+
+            <div class="session-class">
+              ${session.className}
+            </div>
+
+          </div>
+
+          <div class="stats">
+
+            <div class="stat present">
+              ${session.present} présent(s)
+            </div>
+
+            <div class="stat absent">
+              ${session.absent} absent(s)
+            </div>
+
+            <div class="stat late">
+              ${session.late} retard(s)
+            </div>
+
+          </div>
+        `;
+
+        history.appendChild(card);
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      history.innerHTML =
+        '<div class="error">Impossible de charger l’historique.</div>';
+    }
+  }
+
+  loadHistory();
+</script>
+
+</body>
+</html>
