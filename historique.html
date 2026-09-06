@@ -165,6 +165,11 @@
 </main>
 
 <script>
+  const profAccessToken = sessionStorage.getItem("prof_access_token");
+
+if (!profAccessToken) {
+  window.location.href = "connexion.html";
+}
   const SUPABASE_KEY =
     "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
 
