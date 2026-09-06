@@ -364,7 +364,7 @@
     let allStudents = [];
    async function loadStudents() {
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/students?select=first_name,last_name,class_name&active=eq.true&order=class_name.asc&order=Students_code.asc`,
+    `${SUPABASE_URL}/rest/v1/students?select=id,first_name,last_name,class_name&active=eq.true&order=class_name.asc&order=Students_code.asc`,
     {
       headers: {
         apikey: SUPABASE_KEY,
@@ -534,24 +534,83 @@ function changeClass() {
         late + " retard(s)";
     }
 
-    function validateAttendance() {
-      const present =
-        Object.values(attendance).filter(x => x.status === "present").length;
+   async function validateAttendance() {
+  const selectedClass = document.getElementById("classSelect").value;
+  const attendanceDate = document.getElementById("dateInput").value;
+  const startTime = document.getElementById("startTime").value;
+  const endTime = document.getElementById("endTime").value;
 
-      const absent =
-        Object.values(attendance).filter(x => x.status === "absent").length;
+  const classStudents = students.filter(
+    student => student.class_name === selectedClass
+  );
 
-      const late =
-        Object.values(attendance).filter(x => x.status === "late").length;
+  const rows = classStudents.map(student => {
+    const name = `${student.first_name} ${student.last_name}`.trim();
 
-      alert(
-       "Appel prêt à être validé\n\n" +
-present + " présent(s)\n" +
-absent + " absent(s)\n" +
-late + " retard(s)\n\n" +
-"Aucune donnée n'est encore enregistrée dans une base." 
-      );
+    const data = attendance[name] || {
+      status: "present",
+      arrival: ""
+    };
+
+    return {
+      student_id: student.id,
+      attendance_date: attendanceDate,
+      status: data.status,
+      class_name: selectedClass,
+      arrival_time:
+        data.status === "late" && data.arrival
+          ? data.arrival
+          : null,
+      start_time: startTime,
+      end_time: endTime
+    };
+  });
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/attendance`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify(rows)
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
     }
+
+    const present =
+      rows.filter(x => x.status === "present").length;
+
+    const absent =
+      rows.filter(x => x.status === "absent").length;
+
+    const late =
+      rows.filter(x => x.status === "late").length;
+
+    alert(
+      "✅ Appel enregistré avec succès\n\n" +
+      present + " présent(s)\n" +
+      absent + " absent(s)\n" +
+      late + " retard(s)"
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      "❌ L'appel n'a pas pu être enregistré.\n\n" +
+      "Aucune modification n'a été faite."
+    );
+  }
+} 
 
     document.getElementById("dateInput").value =
       new Date().toISOString().split("T")[0];
