@@ -178,7 +178,7 @@
     try {
 
       const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/attendance?select=attendance_date,class_name,status,arrival_time,start_time,end_time&order=attendance_date.desc,created_at.desc`,
+        `${SUPABASE_URL}/rest/v1/attendance?select=created_at,attendance_date,class_name,status,arrival_time,start_time,end_time&order=attendance_date.desc,created_at.desc`,
         {
           headers: {
             apikey: SUPABASE_KEY,
@@ -203,11 +203,12 @@
 
       rows.forEach(row => {
 
-        const key =
-          row.attendance_date + "|" +
-          row.class_name + "|" +
-          row.start_time + "|" +
-          row.end_time;
+       const key =
+  row.created_at + "|" +
+  row.attendance_date + "|" +
+  row.class_name + "|" +
+  row.start_time + "|" +
+  row.end_time; 
 
         if (!sessions[key]) {
           sessions[key] = {
