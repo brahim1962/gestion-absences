@@ -373,7 +373,7 @@ if (!profAccessToken) {
     {
       headers: {
         apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
+        Authorization: `Bearer ${profAccessToken}`
       }
     }
   );
@@ -587,7 +587,7 @@ validateButton.textContent = "Enregistrement...";
         method: "POST",
         headers: {
           apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
+          Authorization: `Bearer ${profAccessToken}`,
           "Content-Type": "application/json",
           Prefer: "return=minimal"
         },
