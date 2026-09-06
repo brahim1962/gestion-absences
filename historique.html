@@ -165,11 +165,51 @@
 </main>
 
 <script>
-  const profAccessToken = sessionStorage.getItem("prof_access_token");
-
-if (!profAccessToken) {
+  let profAccessToken = sessionStorage.getItem("prof_access_token");
+let profRefreshToken = sessionStorage.getItem("prof_refresh_token");
+if (!profAccessToken && !profRefreshToken) {
   window.location.href = "connexion.html";
 }
+async function refreshProfessorSession() {
+  if (!profRefreshToken) return false;
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          refresh_token: profRefreshToken
+        })
+      }
+    );
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+
+    profAccessToken = data.access_token;
+    profRefreshToken = data.refresh_token;
+
+    sessionStorage.setItem(
+      "prof_access_token",
+      data.access_token
+    );
+
+    sessionStorage.setItem(
+      "prof_refresh_token",
+      data.refresh_token
+    );
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+}  
   const SUPABASE_KEY =
     "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
 
@@ -193,8 +233,17 @@ if (!profAccessToken) {
       );
 
       if (!response.ok) {
-        throw new Error(await response.text());
-      }
+  const refreshed = await refreshProfessorSession();
+
+  if (refreshed) {
+    return loadHistory();
+  }
+
+  sessionStorage.removeItem("prof_access_token");
+  sessionStorage.removeItem("prof_refresh_token");
+  window.location.href = "connexion.html";
+  return;
+}
 
       const rows = await response.json();
 
