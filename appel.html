@@ -359,9 +359,48 @@
   <script>
    let profAccessToken = sessionStorage.getItem("prof_access_token");
 const profRefreshToken = sessionStorage.getItem("prof_refresh_token");
-if (!profAccessToken) {
+if (!profAccessToken && !profRefreshToken) {
   window.location.href = "connexion.html";
 }
+   async function refreshProfessorSession() {
+  if (!profRefreshToken) return false;
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          refresh_token: profRefreshToken
+        })
+      }
+    );
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+
+    profAccessToken = data.access_token;
+
+    sessionStorage.setItem(
+      "prof_access_token",
+      data.access_token
+    );
+
+    sessionStorage.setItem(
+      "prof_refresh_token",
+      data.refresh_token
+    );
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+} 
   const SUPABASE_KEY = "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
     
    const SUPABASE_URL = "https://gtbbrvtpesyumnhyfsrh.supabase.co"; 
