@@ -143,7 +143,14 @@
 </head>
 
 <body>
+<script>
+  const profAccessToken = sessionStorage.getItem("prof_access_token");
+  const profRefreshToken = sessionStorage.getItem("prof_refresh_token");
 
+  if (!profAccessToken || !profRefreshToken) {
+    window.location.href = "connexion.html";
+  }
+</script>
   <header class="header">
     <div class="icon">📅✓</div>
     <h1>Gestion des absences</h1>
