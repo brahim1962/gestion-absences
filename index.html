@@ -148,6 +148,7 @@
     <div class="icon">📅✓</div>
     <h1>Gestion des absences</h1>
     <p>LABNIHI Brahim – Prof SVT</p>
+   <button onclick="logoutProfessor()">Déconnexion</button> 
   </header>
 
   <main class="container">
@@ -189,6 +190,12 @@
   <footer class="footer">
     Année scolaire 2026–2027
   </footer>
-
+<script>
+  function logoutProfessor() {
+    sessionStorage.removeItem("prof_access_token");
+    sessionStorage.removeItem("prof_refresh_token");
+    window.location.href = "connexion.html";
+  }
+</script>
 </body>
 </html>
