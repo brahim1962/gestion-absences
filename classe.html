@@ -4,6 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion de la classe</title>
+  <style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #123;
+  }
+
+  .header {
+    background: #1f76b5;
+    color: white;
+    padding: 28px 20px;
+  }
+
+  .header-content {
+    max-width: 900px;
+    margin: auto;
+  }
+
+  .header a {
+    color: white;
+    text-decoration: none;
+  }
+
+  .header h1 {
+    margin: 14px 0 6px;
+    font-size: 32px;
+  }
+
+  .header p {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 22px 20px;
+  }
+</style>
 </head>
 
 <body>
@@ -17,11 +61,15 @@
     window.location.href = "connexion.html";
   }
 </script>
-  <a href="eleves.html">← Élèves & classes</a>
+  <header class="header">
+  <div class="header-content">
+    <a href="eleves.html">← Élèves & classes</a>
+    <h1 id="classTitle">Classe</h1>
+    <p>Gestion des élèves de cette classe</p>
+  </div>
+</header>
 
-  <h1 id="classTitle">Classe</h1>
-
-  <p>Gestion des élèves de cette classe</p>
+<main class="container">
   <h2>Élèves</h2>
 
 <div id="studentsList">
@@ -74,5 +122,6 @@
 
 loadStudents();
 </script>
+ </main> 
 </body>
 </html>
