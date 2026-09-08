@@ -25,6 +25,7 @@
   .header-content {
     max-width: 900px;
     margin: auto;
+   position: relative; 
   }
 
   .back {
@@ -43,6 +44,10 @@
     font-size: 16px;
   }
   .import-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);  
   background: #1769aa;
   color: white;
   border: none;
@@ -76,13 +81,14 @@
     <a class="back" href="index.html">←Accueil</a>
     <h1>👥 Élèves & classes</h1>
     <p>Gestion des classes et des listes d’élèves</p>
+  <button type="button" class="import-button">
+  📥 Importer des élèves
+</button>  
   </div>
 </header>
 <main class="container">
   <section class="classes-section">
-    <button type="button" class="import-button">
-  📥 Importer des élèves
-</button>
+    
     <h2>Classes</h2>
     <div id="classesList">
       Chargement des classes...
