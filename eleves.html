@@ -146,7 +146,9 @@ async function loadClasses() {
   )];
 
   document.getElementById("classesList").innerHTML =
-    classes.map(className => `<div class="class-card">${className}</div>`).join("");
+    classes.map(className =>
+  `<div class="class-card" onclick="window.location.href='classe.html?class=' + encodeURIComponent('${className}')">${className}</div>`
+).join("");
 }
 
 loadClasses();
