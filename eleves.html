@@ -62,6 +62,24 @@
 .import-button:hover {
   background: #12558a;
 } 
+  #classesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.class-card {
+  background: white;
+  border: 1px solid #d6e2ec;
+  border-radius: 10px;
+  padding: 14px 22px;
+  min-width: 150px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}  
  @media (max-width: 900px) {
   .import-button {
     position: static;
@@ -130,7 +148,7 @@ async function loadClasses() {
   )];
 
   document.getElementById("classesList").innerHTML =
-    classes.map(className => `<div>${className}</div>`).join("");
+    classes.map(className => `<div class="class-card">${className}</div>`).join("");
 }
 
 loadClasses();
