@@ -135,7 +135,7 @@
   }
 
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/students?select=id,Students_code,first_name,last_name,class_name,active&class_name=eq.${encodeURIComponent(className)}&active=eq.true&order=last_name.asc,first_name.asc`,
+    `${SUPABASE_URL}/rest/v1/students?select=id,Students_code,first_name,last_name,class_name,active&class_name=eq.${encodeURIComponent(className)}&order=last_name.asc,first_name.asc`,
     {
       headers: {
         apikey: SUPABASE_KEY,
