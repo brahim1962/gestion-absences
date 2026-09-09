@@ -163,7 +163,7 @@
   `<div>
   <span>${student.last_name} ${student.first_name} — ${student.Students_code}</span>
   <span class="student-actions">
-    <button type="button" onclick="modifyStudent('${student.id}', '${student.first_name}', '${student.last_name}')">✏️ Modifier</button>
+    <button type="button" onclick="modifyStudent('${student.Students_code}', '${student.first_name}', '${student.last_name}')">✏️ Modifier</button>
     <button type="button">⏸ Désactiver</button>
     <button type="button">🗑 Supprimer</button>
   </span>
@@ -171,7 +171,7 @@
     ).join("");
 }
 
- async function modifyStudent(id, firstName, lastName) {
+ async function modifyStudent(studentCode, firstName, lastName) {
   const newFirstName = prompt("Prénom :", firstName);
   if (newFirstName === null) return;
 
@@ -179,7 +179,7 @@
   if (newLastName === null) return;
 
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/students?id=eq.${id}`,
+    `${SUPABASE_URL}/rest/v1/students?Students_code=eq.${encodeURIComponent(studentCode)}`,
     {
       method: "PATCH",
       headers: {
