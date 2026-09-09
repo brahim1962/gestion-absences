@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion de la classe</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <style>
   * {
     box-sizing: border-box;
@@ -25,8 +26,25 @@
   .header-content {
     max-width: 900px;
     margin: auto;
+    position: relative;
   }
+.import-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
 
+.import-button:hover {
+  background: rgba(255,255,255,0.25);
+}
   .header a {
     color: white;
     text-decoration: none;
@@ -113,6 +131,16 @@
     <a href="eleves.html">← Élèves & classes</a>
     <h1 id="classTitle">Classe</h1>
     <p>Gestion des élèves de cette classe</p>
+    <button class="import-button" type="button" onclick="document.getElementById('studentsFileInput').click()">
+  📥 Importer des élèves
+</button>
+
+<input
+  type="file"
+  id="studentsFileInput"
+  accept=".xlsx,.xls,.csv"
+  style="display:none"
+>
   </div>
 </header>
 
@@ -364,7 +392,113 @@ if (updatedStudents.length === 0) {
 
   alert("Élève supprimé avec succès.");
   loadStudents();
-} 
+}
+ document.getElementById("studentsFileInput").addEventListener("change", async function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    if (rows.length === 0) {
+      alert("Le fichier ne contient aucun élève.");
+      event.target.value = "";
+      return;
+    }
+
+    const studentsToImport = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+
+      const studentCode = String(row.Students_code || "").trim();
+      const firstName = String(row.first_name || "").trim();
+      const lastName = String(row.last_name || "").trim();
+      const fileClassName = String(row.class_name || "").trim();
+
+      // Ignore les lignes entièrement vides
+      if (!studentCode && !firstName && !lastName && !fileClassName) {
+        continue;
+      }
+
+      if (!studentCode || !firstName || !lastName || !fileClassName) {
+        alert(`Ligne ${i + 2} incomplète dans le fichier.`);
+        event.target.value = "";
+        return;
+      }
+
+      if (fileClassName !== className) {
+        alert(
+          `Classe incorrecte à la ligne ${i + 2}.\n\n` +
+          `Classe du fichier : ${fileClassName}\n` +
+          `Classe ouverte : ${className}\n\n` +
+          `Importation annulée.`
+        );
+        event.target.value = "";
+        return;
+      }
+
+      studentsToImport.push({
+        Students_code: studentCode,
+        first_name: firstName,
+        last_name: lastName,
+        class_name: fileClassName,
+        active: true
+      });
+    }
+
+    if (studentsToImport.length === 0) {
+      alert("Aucun élève valide trouvé dans le fichier.");
+      event.target.value = "";
+      return;
+    }
+
+    const confirmation = confirm(
+      `Importer ${studentsToImport.length} élève(s) dans la classe ${className} ?`
+    );
+
+    if (!confirmation) {
+      event.target.value = "";
+      return;
+    }
+
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/students`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${profAccessToken}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify(studentsToImport)
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(errorText);
+      alert("Impossible d'importer les élèves.");
+      event.target.value = "";
+      return;
+    }
+
+    const importedStudents = await response.json();
+
+    alert(`${importedStudents.length} élève(s) importé(s) avec succès.`);
+    event.target.value = "";
+    loadStudents();
+
+  } catch (error) {
+    console.error(error);
+    alert("Erreur lors de la lecture du fichier.");
+    event.target.value = "";
+  }
+}); 
 </script>
  </main> 
 </body>
