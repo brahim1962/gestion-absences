@@ -233,7 +233,12 @@ async function disableStudent(studentCode, firstName, lastName) {
     alert("Impossible de désactiver l'élève.");
     return;
   }
+onst updatedStudents = await response.json();
 
+if (updatedStudents.length === 0) {
+  alert("Aucun élève trouvé : la désactivation n'a pas été appliquée.");
+  return;
+}
   alert("Élève désactivé avec succès.");
   loadStudents();
 }  
