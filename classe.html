@@ -90,7 +90,10 @@
     font-size: 14px;
     padding: 8px 6px;
   }
-}  
+}
+ .student-disabled {
+  opacity: 0.45;
+}   
 </style>
 </head>
 
@@ -160,7 +163,7 @@
 
   document.getElementById("studentsList").innerHTML =
     students.map(student =>
-  `<div>
+  `<div class="${student.active ? '' : 'student-disabled'}">
   <span>${student.last_name} ${student.first_name} — ${student.Students_code}</span>
   <span class="student-actions">
     <button type="button" onclick="modifyStudent('${student.Students_code}', '${student.first_name}', '${student.last_name}')">✏️ Modifier</button>
