@@ -135,7 +135,7 @@
   }
 
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/students?select=Students_code,first_name,last_name,class_name,active&class_name=eq.${encodeURIComponent(className)}&active=eq.true&order=last_name.asc,first_name.asc`,
+    `${SUPABASE_URL}/rest/v1/students?select=id,Students_code,first_name,last_name,class_name,active&class_name=eq.${encodeURIComponent(className)}&active=eq.true&order=last_name.asc,first_name.asc`,
     {
       headers: {
         apikey: SUPABASE_KEY,
@@ -163,13 +163,46 @@
   `<div>
   <span>${student.last_name} ${student.first_name} — ${student.Students_code}</span>
   <span class="student-actions">
-    <button type="button">✏️ Modifier</button>
+    <button type="button" onclick="modifyStudent('${student.id}', '${student.first_name}', '${student.last_name}')">✏️ Modifier</button>
     <button type="button">⏸ Désactiver</button>
     <button type="button">🗑 Supprimer</button>
   </span>
 </div>`
     ).join("");
 }
+
+ async function modifyStudent(id, firstName, lastName) {
+  const newFirstName = prompt("Prénom :", firstName);
+  if (newFirstName === null) return;
+
+  const newLastName = prompt("Nom :", lastName);
+  if (newLastName === null) return;
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/students?id=eq.${id}`,
+    {
+      method: "PATCH",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${profAccessToken}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({
+        first_name: newFirstName.trim(),
+        last_name: newLastName.trim()
+      })
+    }
+  );
+
+  if (!response.ok) {
+    alert("Impossible de modifier l’élève.");
+    return;
+  }
+
+  alert("Élève modifié avec succès.");
+  loadStudents();
+} 
 
 loadStudents();
 </script>
