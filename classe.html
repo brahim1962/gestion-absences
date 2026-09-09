@@ -287,6 +287,51 @@ if (updatedStudents.length === 0) {
   loadStudents();
 }
  async function deleteStudent(studentCode, firstName, lastName) {
+   const studentResponse = await fetch(
+    `${SUPABASE_URL}/rest/v1/students?select=id&Students_code=eq.${encodeURIComponent(studentCode)}`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${profAccessToken}`
+      }
+    }
+  );
+
+  if (!studentResponse.ok) {
+    alert("Impossible de vérifier l'historique de l'élève.");
+    return;
+  }
+
+  const studentData = await studentResponse.json();
+
+  if (studentData.length === 0) {
+    alert("Élève introuvable.");
+    return;
+  }
+
+  const studentId = studentData[0].id;
+
+  const attendanceResponse = await fetch(
+    `${SUPABASE_URL}/rest/v1/attendance?select=id&student_id=eq.${studentId}&limit=1`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${profAccessToken}`
+      }
+    }
+  );
+
+  if (!attendanceResponse.ok) {
+    alert("Impossible de vérifier l'historique des appels.");
+    return;
+  }
+
+  const attendanceData = await attendanceResponse.json();
+
+  if (attendanceData.length > 0) {
+    alert("Cet élève possède déjà un historique d'appel.\n\nIl ne peut pas être supprimé définitivement. Utilisez Désactiver.");
+    return;
+  }
   const confirmation = confirm(
     `⚠️ SUPPRESSION DÉFINITIVE\n\nSupprimer l'élève ${lastName} ${firstName} ?\n\nCette action est irréversible.`
   );
