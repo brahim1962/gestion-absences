@@ -58,7 +58,7 @@
     .title h2 {
       margin-bottom: 5px;
     }
-#exportExcel {
+.exportExcel {
   background: #2176b5;
   color: white;
   border: none;
@@ -69,7 +69,7 @@
   cursor: pointer;
 }
 
-#exportExcel:hover {
+.exportExcel:hover {
   background: #185d91;
 }
     .session {
@@ -174,9 +174,7 @@
       <div>Présences, absences et retards enregistrés</div>
     </div>
 
-    <button id="exportExcel" type="button">
-      📊 Exporter Excel
-    </button>
+    
 
   </div>
 </div>
@@ -389,9 +387,17 @@ if (row.status === "late") {
 </div>
             </div>
 
-            <div class="session-class">
-              ${session.className}
-            </div>
+            <div style="text-align:right;">
+
+  <div class="session-class">
+    ${session.className}
+  </div>
+
+  <button class="exportExcel" type="button">
+    📊 Excel
+  </button>
+
+</div>
 
           </div>
 
@@ -417,7 +423,13 @@ if (row.status === "late") {
 
           </div>
         `;
+const excelButton = card.querySelector(".exportExcel");
 
+excelButton.addEventListener("click", () => {
+
+  exportToExcel(session);
+
+});
         history.appendChild(card);
       });
 
@@ -429,7 +441,7 @@ if (row.status === "late") {
         '<div class="error">Impossible de charger l’historique.</div>';
     }
   }
-function exportToExcel() {
+function exportToExcel(session) {
 
   if (exportRows.length === 0) {
     alert("Aucun appel à exporter.");
@@ -445,7 +457,15 @@ function exportToExcel() {
 
   const classes = {};
 
-  exportRows.forEach(row => {
+  exportRows
+.filter(row =>
+  row.attendance_date === session.date &&
+  row.class_name === session.className &&
+  row.start_time === session.startTime &&
+  row.end_time === session.endTime &&
+  row.created_at === session.createdAt
+)
+.forEach(row => {
 
     const className = row.class_name || "Sans classe";
 
@@ -517,8 +537,7 @@ function exportToExcel() {
   );
 
 }
-  document.getElementById("exportExcel")
-  .addEventListener("click", exportToExcel);
+ 
 
 loadHistory();
   
