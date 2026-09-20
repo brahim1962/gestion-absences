@@ -482,7 +482,9 @@ async function loadDashboard() {
 
     });
 
-    studentsData = Object.values(studentMap);
+    studentsData = Object.values(studentMap).filter(
+  student => student.active === true
+);
 
     const classFilter =
       document.getElementById("classFilter");
