@@ -238,7 +238,8 @@ async function refreshProfessorSession() {
 
   const SUPABASE_URL =
     "https://gtbbrvtpesyumnhyfsrh.supabase.co";
-
+let exportRows = [];
+let exportStudentsById = {};
   async function loadHistory() {
 
     const history = document.getElementById("history");
@@ -269,7 +270,7 @@ async function refreshProfessorSession() {
 }
 
       const rows = await response.json();
-
+      exportRows = rows;
       if (rows.length === 0) {
         history.innerHTML =
           '<div class="empty">Aucun appel enregistré pour le moment.</div>';
@@ -296,7 +297,8 @@ const students = await studentsResponse.json();
 students.forEach(student => {
   studentsById[student.id] =
     `${student.first_name} ${student.last_name}`;
-});  
+});
+     exportStudentsById = studentsById; 
       const sessions = {};
 
       rows.forEach(row => {
@@ -427,9 +429,100 @@ if (row.status === "late") {
         '<div class="error">Impossible de charger l’historique.</div>';
     }
   }
+function exportToExcel() {
 
-  loadHistory();
+  if (exportRows.length === 0) {
+    alert("Aucun appel à exporter.");
+    return;
+  }
+
+  if (typeof XLSX === "undefined") {
+    alert("La bibliothèque Excel n'est pas disponible.");
+    return;
+  }
+
+  const workbook = XLSX.utils.book_new();
+
+  const classes = {};
+
+  exportRows.forEach(row => {
+
+    const className = row.class_name || "Sans classe";
+
+    if (!classes[className]) {
+      classes[className] = [];
+    }
+
+    const date = row.attendance_date
+      ? row.attendance_date.split("-").reverse().join("/")
+      : "";
+
+    const start = row.start_time
+      ? row.start_time.slice(0, 5)
+      : "";
+
+    const end = row.end_time
+      ? row.end_time.slice(0, 5)
+      : "";
+
+    const arrival = row.arrival_time
+      ? row.arrival_time.slice(0, 5)
+      : "";
+
+    const statuses = {
+      present: "Présent",
+      absent: "Absent",
+      late: "Retard"
+    };
+
+    classes[className].push({
+      "Date": date,
+      "Horaire": `${start} - ${end}`,
+      "Élève": exportStudentsById[row.student_id] || "Élève inconnu",
+      "Statut": statuses[row.status] || row.status,
+      "Heure d'arrivée": arrival
+    });
+
+  });
+
+  Object.keys(classes).sort().forEach((className, index) => {
+
+    const worksheet = XLSX.utils.json_to_sheet(
+      classes[className]
+    );
+
+    worksheet["!cols"] = [
+      { wch: 15 },
+      { wch: 18 },
+      { wch: 35 },
+      { wch: 15 },
+      { wch: 20 }
+    ];
+
+    const sheetName =
+      className.replace(/[\\/?*[\]:]/g, "").slice(0, 31)
+      || `Classe ${index + 1}`;
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      sheetName
+    );
+
+  });
+
+  XLSX.writeFile(
+    workbook,
+    "Historique_Absences_SVT.xlsx"
+  );
+
+}
+  ocument.getElementById("exportExcel")
+  .addEventListener("click", exportToExcel);
+
+loadHistory();
+  
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </body>
 </html>
