@@ -58,7 +58,20 @@
     .title h2 {
       margin-bottom: 5px;
     }
+#exportExcel {
+  background: #2176b5;
+  color: white;
+  border: none;
+  border-radius: 9px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
 
+#exportExcel:hover {
+  background: #185d91;
+}
     .session {
       background: white;
       border: 1px solid #d6e3ee;
@@ -154,9 +167,19 @@
 <main>
 
   <div class="title">
-    <h2>Historique des appels</h2>
-    <div>Présences, absences et retards enregistrés</div>
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap;">
+
+    <div>
+      <h2>Historique des appels</h2>
+      <div>Présences, absences et retards enregistrés</div>
+    </div>
+
+    <button id="exportExcel" type="button">
+      📊 Exporter Excel
+    </button>
+
   </div>
+</div>
 
   <div id="history">
     <div class="loading">Chargement de l'historique...</div>
