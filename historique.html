@@ -448,12 +448,12 @@ function exportToExcel(session) {
     return;
   }
 
-  if (typeof XLSX === "undefined") {
+  if (typeof ExcelJS === "undefined") {
     alert("La bibliothèque Excel n'est pas disponible.");
     return;
-  }
+}
 
-  const workbook = XLSX.utils.book_new();
+const workbook = new ExcelJS.Workbook();
 
   const classes = {};
 
@@ -507,34 +507,64 @@ function exportToExcel(session) {
 
   Object.keys(classes).sort().forEach((className, index) => {
 
-    const worksheet = XLSX.utils.json_to_sheet(
-      classes[className]
-    );
+    const worksheet = workbook.addWorksheet(className);
 
-    worksheet["!cols"] = [
-      { wch: 15 },
-      { wch: 18 },
-      { wch: 35 },
-      { wch: 15 },
-      { wch: 20 }
-    ];
+worksheet.columns = [
+  { header: "Date", key: "Date", width: 15 },
+  { header: "Horaire", key: "Horaire", width: 18 },
+  { header: "Élève", key: "Élève", width: 35 },
+  { header: "Statut", key: "Statut", width: 15 },
+  { header: "Heure d'arrivée", key: "Heure d'arrivée", width: 20 }
+];
 
-    const sheetName =
-      className.replace(/[\\/?*[\]:]/g, "").slice(0, 31)
-      || `Classe ${index + 1}`;
+classes[className].forEach(row => {
 
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      sheetName
-    );
+  const excelRow = worksheet.addRow(row);
 
+  const statusCell = excelRow.getCell(4);
+
+  if (row.Statut === "Absent") {
+    statusCell.font = {
+      color: { argb: "FFFF0000" },
+      bold: true
+    };
+  }
+
+  if (row.Statut === "Retard") {
+    statusCell.font = {
+      color: { argb: "FF0000FF" },
+      bold: true
+    };
+  }
+
+});
+
+    
   });
 
-  XLSX.writeFile(
-    workbook,
-    "Historique_Absences_SVT.xlsx"
+  workbook.xlsx.writeBuffer().then(buffer => {
+
+  const blob = new Blob(
+    [buffer],
+    {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
   );
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download =
+    `Absences_${session.className}_${session.date}.xlsx`;
+
+  link.click();
+
+  URL.revokeObjectURL(url);
+
+});
 
 }
  
@@ -542,6 +572,6 @@ function exportToExcel(session) {
 loadHistory();
   
 </script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </body>
 </html>
