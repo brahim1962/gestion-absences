@@ -1,10 +1,630 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Tableau de bord des absences</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f8ff;
+  color: #183153;
+}
+
+header {
+  background: #2166a5;
+  color: white;
+  text-align: center;
+  padding: 25px 15px;
+}
+
+header h1 {
+  margin: 0 0 10px;
+  font-size: 27px;
+}
+
+header p {
+  margin: 0;
+}
+
+nav {
+  text-align: center;
+  padding: 18px;
+}
+
+nav a {
+  display: inline-block;
+  margin: 5px;
+  padding: 11px 18px;
+  background: #2166a5;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: #174d82;
+}
+
+.filters {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  text-align: center;
+  box-shadow: 0 3px 12px #00000010;
+}
+
+select {
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  min-width: 220px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.stat {
+  background: white;
+  padding: 22px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px #00000010;
+}
+
+.stat strong {
+  display: block;
+  font-size: 30px;
+  margin-top: 10px;
+  color: #2166a5;
+}
+
+.table-container {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 3px 12px #00000010;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #2166a5;
+  color: white;
+  padding: 14px;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e4eaf1;
+  text-align: center;
+}
+
+td:nth-child(2) {
+  text-align: left;
+}
+
+tr:hover {
+  background: #f1f6ff;
+}
+
+.absent {
+  color: #e00000;
+  font-weight: bold;
+}
+
+.late {
+  color: #0055dd;
+  font-weight: bold;
+}
+
+.empty {
+  text-align: center;
+  padding: 25px;
+  color: #777;
+}
+
+@media(max-width: 650px) {
+
+  header h1 {
+    font-size: 22px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  main {
+    padding: 10px;
+  }
+
+  th, td {
+    padding: 9px 6px;
+    font-size: 13px;
+  }
+
+}
+
+</style>
+
 </head>
+
 <body>
-<h1>Tableau de bord des absences</h1>
+
+<header>
+
+<h1>📊 Tableau de bord des absences</h1>
+
+<p>LABNIHI Brahim – Prof SVT</p>
+
+</header>
+
+<nav>
+
+<a href="index.html">🏠 Accueil</a>
+
+<a href="appel.html">📋 Faire l'appel</a>
+
+<a href="historique.html">📚 Historique</a>
+
+</nav>
+
+<main>
+
+<h2>Suivi des absences et des retards</h2>
+
+<div class="filters">
+
+<label for="classFilter">
+<strong>Classe :</strong>
+</label>
+
+<select id="classFilter">
+
+<option value="">Toutes les classes</option>
+
+</select>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+
+Élèves
+
+<strong id="totalStudents">0</strong>
+
+</div>
+
+<div class="stat">
+
+Absences
+
+<strong id="totalAbsences">0</strong>
+
+</div>
+
+<div class="stat">
+
+Retards
+
+<strong id="totalRetards">0</strong>
+
+</div>
+
+</div>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Rang</th>
+
+<th>Élève</th>
+
+<th>Classe</th>
+
+<th>Absences</th>
+
+<th>Retards</th>
+
+</tr>
+
+</thead>
+
+<tbody id="studentsTable">
+
+<tr>
+<td colspan="5" class="empty">
+Chargement des données...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</main>
+
+<script>
+
+let profAccessToken =
+  sessionStorage.getItem("prof_access_token");
+
+let profRefreshToken =
+  sessionStorage.getItem("prof_refresh_token");
+
+if (!profAccessToken || !profRefreshToken) {
+  window.location.href = "connexion.html";
+}
+
+const SUPABASE_URL = "https://gtbbrvtpesyumnhyfsrh.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
+
+let studentsData = [];
+
+async function refreshProfessorSession() {
+
+  if (!profRefreshToken) return false;
+
+  try {
+
+    const response = await fetch(
+      `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
+      {
+        method: "POST",
+
+        headers: {
+          apikey: SUPABASE_KEY,
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          refresh_token: profRefreshToken
+        })
+      }
+    );
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+
+    profAccessToken = data.access_token;
+
+    profRefreshToken = data.refresh_token;
+
+    sessionStorage.setItem(
+      "prof_access_token",
+      data.access_token
+    );
+
+    sessionStorage.setItem(
+      "prof_refresh_token",
+      data.refresh_token
+    );
+
+    return true;
+
+  } catch (error) {
+
+    return false;
+
+  }
+
+}
+
+async function fetchSupabase(path) {
+
+  let response = await fetch(
+    `${SUPABASE_URL}/rest/v1/${path}`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${profAccessToken}`
+      }
+    }
+  );
+
+  if (response.status === 401) {
+
+    const refreshed =
+      await refreshProfessorSession();
+
+    if (!refreshed) {
+
+      sessionStorage.removeItem("prof_access_token");
+      sessionStorage.removeItem("prof_refresh_token");
+
+      window.location.href = "connexion.html";
+
+      throw new Error("Session expirée");
+
+    }
+
+    response = await fetch(
+      `${SUPABASE_URL}/rest/v1/${path}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${profAccessToken}`
+        }
+      }
+    );
+
+  }
+
+  if (!response.ok) {
+
+    throw new Error(await response.text());
+
+  }
+
+  return response.json();
+
+}
+
+async function fetchAllSupabase(table, columns) {
+
+  const allRows = [];
+
+  const pageSize = 500;
+
+  let offset = 0;
+
+  while (true) {
+
+    const rows = await fetchSupabase(
+      `${table}?select=${columns}` +
+      `&limit=${pageSize}&offset=${offset}`
+    );
+
+    allRows.push(...rows);
+
+    if (rows.length < pageSize) break;
+
+    offset += pageSize;
+
+  }
+
+  return allRows;
+
+}
+
+async function loadDashboard() {
+
+  try {
+
+    const students = await fetchAllSupabase(
+      "students",
+      "id,first_name,last_name,class_name,active"
+    );
+
+    const attendance = await fetchAllSupabase(
+      "attendance",
+      "student_id,status,class_name"
+    );
+
+    const studentMap = {};
+
+    students.forEach(student => {
+
+      studentMap[student.id] = {
+
+        id: student.id,
+
+        name:
+          `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+
+        className: student.class_name || "Sans classe",
+
+        active: student.active,
+
+        absences: 0,
+
+        retards: 0
+
+      };
+
+    });
+
+    attendance.forEach(row => {
+
+      const student = studentMap[row.student_id];
+
+      if (!student) return;
+
+      if (row.status === "absent") {
+
+        student.absences++;
+
+      }
+
+      if (row.status === "late") {
+
+        student.retards++;
+
+      }
+
+    });
+
+    studentsData = Object.values(studentMap);
+
+    const classFilter =
+      document.getElementById("classFilter");
+
+    const classes = [
+      ...new Set(
+        studentsData.map(s => s.className)
+      )
+    ].sort();
+
+    classes.forEach(className => {
+
+      const option =
+        document.createElement("option");
+
+      option.value = className;
+
+      option.textContent = className;
+
+      classFilter.appendChild(option);
+
+    });
+
+    classFilter.addEventListener(
+      "change",
+      renderDashboard
+    );
+
+    renderDashboard();
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("studentsTable").innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          Impossible de charger les données.
+        </td>
+      </tr>
+    `;
+
+  }
+
+}
+
+function renderDashboard() {
+
+  const selectedClass =
+    document.getElementById("classFilter").value;
+
+  let filtered = studentsData.filter(student => {
+
+    return (
+      !selectedClass ||
+      student.className === selectedClass
+    );
+
+  });
+
+  filtered.sort((a, b) => {
+
+    return (
+      b.absences - a.absences ||
+      b.retards - a.retards ||
+      a.name.localeCompare(b.name, "fr")
+    );
+
+  });
+
+  document.getElementById("totalStudents").textContent =
+    filtered.length;
+
+  document.getElementById("totalAbsences").textContent =
+    filtered.reduce(
+      (total, s) => total + s.absences,
+      0
+    );
+
+  document.getElementById("totalRetards").textContent =
+    filtered.reduce(
+      (total, s) => total + s.retards,
+      0
+    );
+
+  const tbody =
+    document.getElementById("studentsTable");
+
+  tbody.innerHTML = "";
+
+  if (filtered.length === 0) {
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          Aucun élève dans cette classe.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  filtered.forEach((student, index) => {
+
+    const tr = document.createElement("tr");
+
+    const values = [
+      index + 1,
+      student.name,
+      student.className,
+      student.absences,
+      student.retards
+    ];
+
+    values.forEach((value, column) => {
+
+      const td = document.createElement("td");
+
+      td.textContent = value;
+
+      if (column === 3) {
+        td.className = "absent";
+      }
+
+      if (column === 4) {
+        td.className = "late";
+      }
+
+      tr.appendChild(td);
+
+    });
+
+    tbody.appendChild(tr);
+
+  });
+
+}
+
+loadDashboard();
+
+</script>
+
 </body>
-</html>
