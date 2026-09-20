@@ -213,7 +213,50 @@ tr:hover {
 </select>
 
 </div>
+<div class="filters">
 
+  <label for="periodFilter">
+    Période :
+  </label>
+
+  <select id="periodFilter">
+
+    <option value="year">
+      Année scolaire 2026-2027
+    </option>
+
+    <option value="semester1">
+      Semestre 1
+    </option>
+
+    <option value="semester2">
+      Semestre 2
+    </option>
+
+    <option value="month">
+      Mois
+    </option>
+
+  </select>
+
+  <select id="monthFilter" style="display:none;">
+
+    <option value="9">Septembre</option>
+    <option value="10">Octobre</option>
+    <option value="11">Novembre</option>
+    <option value="12">Décembre</option>
+    <option value="1">Janvier</option>
+    <option value="2">Février</option>
+    <option value="3">Mars</option>
+    <option value="4">Avril</option>
+    <option value="5">Mai</option>
+    <option value="6">Juin</option>
+    <option value="7">Juillet</option>
+    <option value="8">Août</option>
+
+  </select>
+
+</div>
 <div class="stats">
 
 <div class="stat">
@@ -297,7 +340,8 @@ const SUPABASE_URL = "https://gtbbrvtpesyumnhyfsrh.supabase.co";
 const SUPABASE_KEY = "sb_publishable_LZzN6nKGCPx2c9RLqyZBKA_rhN_mE_3";
 
 let studentsData = [];
-
+let allStudents = [];
+let allAttendance = [];
 async function refreshProfessorSession() {
 
   if (!profRefreshToken) return false;
@@ -429,59 +473,41 @@ async function loadDashboard() {
 
   try {
 
-    const students = await fetchAllSupabase(
-      "students",
-      "id,first_name,last_name,class_name,active"
-    );
+  const students = await fetchAllSupabase(
+    "students",
+    "id,first_name,last_name,class_name,active"
+  );
 
-    const attendance = await fetchAllSupabase(
-      "attendance",
-      "student_id,status,class_name"
-    );
+  const attendance = await fetchAllSupabase(
+    "attendance",
+    "student_id,status,class_name,attendance_date"
+  );
 
-    const studentMap = {};
+  allStudents = students;
+  allAttendance = attendance;
+const studentMap = {};
 
-    students.forEach(student => {
+students.forEach(student => {
 
-      studentMap[student.id] = {
+  studentMap[student.id] = {
 
-        id: student.id,
+    id: student.id,
 
-        name:
-          `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+    name:
+      `${student.first_name || ""} ${student.last_name || ""}`.trim(),
 
-        className: student.class_name || "Sans classe",
+    className: student.class_name || "Sans classe",
 
-        active: student.active,
+    active: student.active,
 
-        absences: 0,
+    absences: 0,
 
-        retards: 0
+    retards: 0
 
-      };
+  };
 
-    });
-
-    attendance.forEach(row => {
-
-      const student = studentMap[row.student_id];
-
-      if (!student) return;
-
-      if (row.status === "absent") {
-
-        student.absences++;
-
-      }
-
-      if (row.status === "late") {
-
-        student.retards++;
-
-      }
-
-    });
-
+});
+  
     studentsData = Object.values(studentMap).filter(
   student => student.active === true
 );
@@ -512,7 +538,15 @@ async function loadDashboard() {
       "change",
       renderDashboard
     );
+document.getElementById("periodFilter").addEventListener(
+  "change",
+  renderDashboard
+);
 
+document.getElementById("monthFilter").addEventListener(
+  "change",
+  renderDashboard
+);
     renderDashboard();
 
   } catch (error) {
@@ -532,7 +566,54 @@ async function loadDashboard() {
 }
 
 function renderDashboard() {
+ studentsData.forEach(student => {
+    student.absences = 0;
+    student.retards = 0;
+  });
 
+  const selectedPeriod =
+    document.getElementById("periodFilter").value;
+   document.getElementById("monthFilter").style.display =
+  selectedPeriod === "month" ? "inline-block" : "none";
+  const selectedMonth =
+    Number(document.getElementById("monthFilter").value);
+
+  allAttendance.forEach(row => {
+
+    const date = row.attendance_date;
+    if (!date) return;
+
+    const month = Number(date.slice(5, 7));
+    const year = Number(date.slice(0, 4));
+
+    if (selectedPeriod === "year") {
+      if (date < "2026-09-01" || date >= "2027-09-01") return;
+    }
+
+    if (selectedPeriod === "semester1") {
+      if (date < "2026-09-01" || date >= "2027-02-01") return;
+    }
+
+    if (selectedPeriod === "semester2") {
+      if (date < "2027-02-01" || date >= "2027-09-01") return;
+    }
+
+    if (selectedPeriod === "month") {
+      const expectedYear = selectedMonth >= 9 ? 2026 : 2027;
+
+      if (month !== selectedMonth || year !== expectedYear) return;
+    }
+
+    const student = studentsData.find(
+      s => s.id === row.student_id
+    );
+
+    if (!student) return;
+
+    if (row.status === "absent") student.absences++;
+    if (row.status === "late") student.retards++;
+
+  });
   const selectedClass =
     document.getElementById("classFilter").value;
 
