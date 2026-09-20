@@ -28,11 +28,16 @@
     margin: auto;
     position: relative;
   }
-.import-button {
+  .header-buttons {
   position: absolute;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}  
+.import-button {
   background: rgba(255,255,255,0.15);
   color: white;
   border: 1px solid rgba(255,255,255,0.6);
@@ -45,6 +50,19 @@
 .import-button:hover {
   background: rgba(255,255,255,0.25);
 }
+ .add-student-button {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-student-button:hover {
+  background: rgba(255,255,255,0.25);
+}  
   .header a {
     color: white;
     text-decoration: none;
@@ -131,16 +149,21 @@
     <a href="eleves.html">← Élèves & classes</a>
     <h1 id="classTitle">Classe</h1>
     <p>Gestion des élèves de cette classe</p>
-    <button class="import-button" type="button" onclick="document.getElementById('studentsFileInput').click()">
-  📥 Importer des élèves
-</button>
-<button
-  class="import-button"
-  type="button"
-  onclick="openAddStudentForm()"
->
-  ➕ Ajouter un élève
-</button>
+  <div class="header-buttons">
+
+  <button class="import-button" type="button" onclick="document.getElementById('studentsFileInput').click()">
+    📥 Importer des élèves
+  </button>
+
+  <button
+    class="add-student-button"
+    type="button"
+    onclick="openAddStudentForm()"
+  >
+    ➕ Ajouter un élève
+  </button>
+
+</div>
 <input
   type="file"
   id="studentsFileInput"
